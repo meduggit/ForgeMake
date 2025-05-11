@@ -97,6 +97,5 @@ name = drkEngine
 ## License
 
 ForgeMake is released under the GNU General Public License v3.0 License. See [LICENSE](./LICENSE) for details.
-```
 
 Feel free to copy and paste this into a `.md` file! Let me know if you need any adjustments.
