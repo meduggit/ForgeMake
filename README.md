@@ -6,28 +6,23 @@ ForgeMake is a simple and lightweight build system designed to compile your C an
 
 ## Features
 
-- **Linux-only Support**: ForgeMake is optimized for Linux, providing an efficient build process for Linux-based environments.
-- **Customizable Compiler**: Supports a compiler of your choice, with `clang` and `clang++` as defaults.
 - **Easy Configuration**: Specify source files, compiler flags, and libraries in a simple `.frg` file.
-- **File Change Detection**: ForgeMake tracks the changes in source files, ensuring only modified files are recompiled.
 - **Direct Compiler Calls**: Unlike systems like `make` or `ninja`, ForgeMake directly invokes the compiler, giving you complete control over the build process.
+- **File Change Detection**: ForgeMake tracks the changes in source and header files, ensuring only modified files are recompiled.
+- **Linux-only Support**: ForgeMake is optimized for Linux, providing an efficient build process for Linux-based environments.
 
 ---
 
-## Installation
+## Usage
 
-1. **Compile ForgeMake**:  
-   To compile ForgeMake, you'll need to run the following command:
+1. **Create the `list.frg` File**:  
+   Write a configuration file (`list.frg`) in the same directory as the `ForgeMake` executable.
 
-   ```bash
-   clang++ -O2 -std=c++17 -o ForgeMake forgeMake.cpp
-   ```
-
-2. **Make ForgeMake Executable**:  
-   After compiling, make sure to set the executable permission for the `ForgeMake` binary:
+2. **Run ForgeMake**:  
+   To run the build system and compile your project, use the following command in the terminal:
 
    ```bash
-   chmod +x ForgeMake
+   ./ForgeMake
    ```
 
 ---
@@ -63,19 +58,21 @@ name = drkEngine
 
 ---
 
-## Usage
+## Building
 
-1. **Create the `list.frg` File**:  
-   Write a configuration file (`list.frg`) in the same directory as the `ForgeMake` executable.
-
-2. **Run ForgeMake**:  
-   To run the build system and compile your project, use the following command in the terminal:
+1. **Compile ForgeMake**:  
+   To compile ForgeMake, you'll need to run the following command:
 
    ```bash
-   ./ForgeMake
+   clang++ -O2 -std=c++17 -o ForgeMake forgeMake.cpp
    ```
 
-   ForgeMake will automatically detect any changes in your source files and compile only the modified files.
+2. **Make ForgeMake Executable**:  
+   After compiling, make sure to set the executable permission for the `ForgeMake` binary:
+
+   ```bash
+   chmod +x ForgeMake
+   ```
 
 ---
 
