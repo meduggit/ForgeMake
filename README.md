@@ -8,6 +8,7 @@ ForgeMake is a simple and lightweight build system designed to compile your C an
 
 - **Easy Configuration**: Specify source files, compiler flags, and libraries in a simple `.frg` file.
 - **Direct Compiler Calls**: Unlike systems like `make` or `ninja`, ForgeMake directly invokes the compiler, giving you complete control over the build process.
+- **Parallelism**: The ability to compile files in parallel to improve performance, especially on larger projects.
 - **File Change Detection**: ForgeMake tracks the changes in source and header files, ensuring only modified files are recompiled.
 - **Linux-only Support**: ForgeMake is optimized for Linux, providing an efficient build process for Linux-based environments.
 
@@ -79,7 +80,6 @@ name = drkEngine
 ## Future Features
 
 - **Cross-Platform Support**: Currently, ForgeMake only supports Linux-to-Linux compilation. Future updates will add support for Windows and macOS platforms.
-- **Parallelism**: The ability to compile files in parallel will be added to improve performance, especially on larger projects.
 
 ---
 

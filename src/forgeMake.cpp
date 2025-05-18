@@ -8,6 +8,9 @@
 #include <filesystem>
 #include <sys/stat.h>
 
+#include <thread>
+#include <mutex>
+
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 #define ORANGE  "\033[38;5;214m"
@@ -17,6 +20,11 @@
 constexpr int debug = 0;
 
 namespace fs = std::filesystem;
+
+std::mutex coutMutex;
+std::mutex objMutex;
+std::vector<std::string> objectFiles;
+
 
 
 struct StructBuildConfig {
@@ -146,59 +154,69 @@ bool isModifiedWithHeaders(const std::string& source, const std::string& object)
     return false;
 }
 
+void compileFile(const std::string& srcFile, const std::string& compiler, const std::string& flags) {
+    std::string base = fs::path(srcFile).stem().string();
+    std::string objFile = "ForgeMakeCache/" + base + ".o";
+
+    if (isModifiedWithHeaders(srcFile, objFile)) {
+        std::ostringstream cmd;
+        cmd << compiler << " -c " << flags << " " << srcFile << " -o " << objFile;
+
+        {
+            std::lock_guard<std::mutex> lock(coutMutex);
+            std::cout << GREEN "[INFO]: " RESET << "Compiling: " << cmd.str() << "\n";
+        }
+
+        if (system(cmd.str().c_str()) != 0) {
+            std::lock_guard<std::mutex> lock(coutMutex);
+            std::cerr << RED "[ERR]: " RESET << "Compilation failed: " << srcFile << "\n";
+            return;
+        }
+    } else {
+        if (debug) {
+            std::lock_guard<std::mutex> lock(coutMutex);
+            std::cout << CYAN "[INFO]: " RESET << "Up-to-date: " << srcFile << "\n";
+        }
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(objMutex);
+        objectFiles.push_back(objFile);
+    }
+}
 
 void compileAndLink() {
     fs::create_directory("ForgeMakeCache");
-    std::vector<std::string> objectFiles;
+    std::vector<std::thread> threads;
 
     for (const auto& pattern : buildconfig.src) {
         for (const auto& srcFile : expandWildcards(pattern)) {
-
             std::string extension = fs::path(srcFile).extension();
-            std::string base = fs::path(srcFile).stem().string();
-            std::string objFile = "ForgeMakeCache/" + base + ".o";
-
             std::string compiler, flags;
 
             if (extension == ".c") {
                 compiler = buildconfig.compilerC;
                 flags = buildconfig.flagsC;
-
             } else if (extension == ".cpp" || extension == ".cc" || extension == ".cxx") {
                 compiler = buildconfig.compilerCXX;
                 flags = buildconfig.flagsCXX;
-
             } else {
+                std::lock_guard<std::mutex> lock(coutMutex);
                 std::cout << ORANGE "[WARN]: " RESET << "Unsupported file type: " << srcFile << RESET << "\n";
-
                 continue;
             }
 
-            if (isModifiedWithHeaders(srcFile, objFile)) {
-                std::ostringstream cmd;
+            threads.emplace_back(compileFile, srcFile, compiler, flags);
+        }
+    }
 
-                cmd << compiler << " -c " << flags << " " << srcFile << " -o " << objFile;
-
-                std::cout << GREEN "[INFO]: " RESET << "Compiling: " << cmd.str() << "\n";
-
-                if (system(cmd.str().c_str()) != 0) {
-                    std::cerr << RED "[ERR]: " RESET << "Compilation failed: " << srcFile << "\n";
-
-                    return;
-                }
-                
-            } else {
-                if (debug) {
-                    std::cout << CYAN "[INFO]: " RESET << "Up-to-date: " << srcFile << "\n";
-                }
-            }
-
-            objectFiles.push_back(objFile);
+    for (auto& thread : threads) {
+        if (thread.joinable()) {
+            thread.join();
         }
     }
 
     std::ostringstream linkCmd;
-
     linkCmd << buildconfig.compilerCXX << " -o " << buildconfig.name;
 
     for (const auto& obj : objectFiles) {
@@ -210,7 +228,7 @@ void compileAndLink() {
     std::cout << CYAN "[INFO]: " RESET << "Linking: " << linkCmd.str() << "\n";
 
     if (system(linkCmd.str().c_str()) != 0) {
-        std::cerr << "Linking failed.\n";
+        std::cerr << RED "[ERR]: " RESET << "Linking failed.\n";
     }
 }
 
